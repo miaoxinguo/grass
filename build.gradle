@@ -1,0 +1,25 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+	sourceCompatibility = 1.8
+    version = '1.0'
+	
+    [compileJava, javadoc, compileTestJava]*.options*.encoding = 'UTF-8'
+    
+    repositories {
+       mavenCentral()
+    }
+
+    dependencies {
+    	compile files(System.properties['java.home']+'/../lib/tools.jar')
+	    compile "org.springframework:spring-jdbc:$version_spring"
+    	compile "org.slf4j:slf4j-api:$version_slf4j"
+		compile "org.javassist:javassist:$version_javassist"
+	    compile "ch.qos.logback:logback-core:$version_logback"
+	    compile "ch.qos.logback:logback-classic:$version_logback"
+    	
+        testCompile 'junit:junit:4.8.2'
+    }
+    
+}

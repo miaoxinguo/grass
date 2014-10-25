@@ -1,0 +1,20 @@
+dependencies {
+	//compile files(System.properties['java.home']+'/../lib/tools.jar')
+	compile "org.mockito:mockito-all:1.9.5"
+}
+
+
+task dist(type: Copy) {
+    from configurations.runtime
+    into 'dist' // 目标位置
+}
+
+jar {
+	manifest {
+        attributes("Permain-Class": "org.miaoxg.grass.core.enhancer.GrassAgent",
+                   "Agent-Class": "org.miaoxg.grass.core.enhancer.GrassAgent",
+                   "Can-Redefine-Classes": "true",
+                   "Can-Retransform-Classes": "true")
+    }
+}
+
