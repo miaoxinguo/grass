@@ -20,6 +20,8 @@ subprojects {
 	    compile "ch.qos.logback:logback-classic:$version_logback"
     	
         testCompile 'junit:junit:4.8.2'
+        testCompile "org.springframework:spring-context:$version_spring"
+        testCompile 'mysql:mysql-connector-java:5.1.18'
     }
     
 }
