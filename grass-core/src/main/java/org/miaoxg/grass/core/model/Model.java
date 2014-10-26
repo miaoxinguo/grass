@@ -38,11 +38,11 @@ public abstract class Model {
      * @return
      */
     protected static <T extends Model> T findById(Class<T> clazz, Serializable id) {
-        StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz));
-        sql.append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
         String fieldIdName = SqlUtils.convertPropertyNameToColumnName(clazz.getDeclaredFields()[0].getName());
-        sql.append(" where ").append(fieldIdName).append("=?");
+        StringBuffer sql = new StringBuffer();
+        sql.append("select ").append(SqlUtils.buildColumns(clazz))
+        .append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
+        .append(" where ").append(fieldIdName).append("=?");
 
         logger.trace(sql.toString());
         Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), id);
@@ -56,7 +56,7 @@ public abstract class Model {
      *            主键
      * @return
      */
-    public static <T extends Model> T deleteById(Integer id) {
+    public static int deleteById(Integer id) {
         throw new GrassException(NIE);
     }
 
@@ -69,8 +69,14 @@ public abstract class Model {
      *            主键
      * @return
      */
-    protected static <T extends Model> T deleteById(Class<T> clazz, Serializable id) {
-        return null;
+    protected static int deleteById(Class<? extends Model> clazz, Serializable id) {
+        String fieldIdName = SqlUtils.convertPropertyNameToColumnName(clazz.getDeclaredFields()[0].getName());
+        StringBuffer sql = new StringBuffer();
+        sql.append("delete from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
+        .append(" where ").append(fieldIdName).append("=?");
+
+        logger.trace(sql.toString());
+        return getJdbcTemplate().update(sql.toString(), id);
     }
 
     // TODO applicationContext.xml中注入JdbcTemplate， 表名前缀

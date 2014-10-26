@@ -32,4 +32,10 @@ public class TestDb {
         logger.debug("column2 = {}", d.getColumn2());
         logger.debug("column3 = {}", d.getColumn3());
     }
+    
+    @Test
+    public void testDeleteById(){
+        int i= Model.deleteById(DummyModel.class, 1);
+        logger.debug("删除 {} 行", i);
+    }
 }
