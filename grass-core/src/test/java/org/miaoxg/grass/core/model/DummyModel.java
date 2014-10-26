@@ -42,7 +42,9 @@ public class DummyModel extends Model {
 	public void setColumn3(String column3) {
 		this.column3 = column3;
 	}
-
+	public Integer getId(){
+	    return id;
+	}
 	public void setId(Integer id) {
 		this.id = id;
 	}
