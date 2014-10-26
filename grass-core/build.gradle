@@ -1,6 +1,7 @@
 dependencies {
 	//compile files(System.properties['java.home']+'/../lib/tools.jar')
 	compile "org.mockito:mockito-all:1.9.5"
+	compile "commons-beanutils:commons-beanutils:1.9.2"
 }
 
 
