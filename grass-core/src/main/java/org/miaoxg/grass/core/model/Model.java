@@ -81,14 +81,25 @@ public abstract class Model {
      * @param value 参数
      * @return 影响的行数
      */
-    public static int delete(String condition, Object...value) {
+    public int delete(String condition, Object...value) {
+        return 1;
+    }
+    
+    /**
+     * 删除
+     * 
+     * @param c 条件
+     * @param value 参数
+     * @return 影响的行数
+     */
+    public static int deleteAll(String condition, Object...value) {
         throw new GrassException(NIE);
     }
 
     /**
      * 删除
      */
-    protected static int delete(Class<? extends Model> clazz, String condition, Object...value) {
+    protected static int deleteAll(Class<? extends Model> clazz, String condition, Object...value) {
         StringBuffer sql = new StringBuffer();
         sql.append("delete from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
         .append(" where ").append(condition);

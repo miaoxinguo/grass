@@ -45,19 +45,16 @@ public class DomainClassEnhancerTest {
 		CtClass ctClass = classPool.get(DummyModel.class.getName());
 		doReturn(ctClass).when(classPool).get(DummyModel.class.getName());
 		enhancer.enhance(this.getClass().getClassLoader(), DummyModel.class.getName());
-//		assertNotNull(ctClass.getMethod("save", "()V"));
+//		assertNotNull(ctClass.getMethod("saveList", "()Ljava/util/List;V")); 
 		
-		assertNotNull(ctClass.getMethod("deleteById", "(Ljava/io/Serializable;)I"));
+		assertNotNull(ctClass.getMethod("deleteAll", "(Ljava/lang/Object;)I"));
 //		assertNotNull(ctClass.getMethod("deleteAll", "()V"));
-//		assertNotNull(ctClass.getMethod("deleteAll", "(Lorg/mar/model/Filter;)V"));
 		
 		assertNotNull(ctClass.getMethod("findById", "(Ljava/io/Serializable;)Lorg/miaoxg/grass/core/model/Model;"));
 		assertNotNull(ctClass.getMethod("findOne", "([Ljava/lang/Object;)Lorg/miaoxg/grass/core/model/Model;"));
 //		assertNotNull(ctClass.getMethod("all", "()Ljava/util/List;"));
 //		assertNotNull(ctClass.getMethod("count", "()J"));  // J表示long
-//		assertNotNull(ctClass.getMethod("count", "(Lorg/mar/model/Filter;)J"));
 //		assertNotNull(ctClass.getMethod("where", "([Ljava/lang/Object;)Ljava/util/List;"));
-//		assertNotNull(ctClass.getMethod("where", "(Lorg/mar/model/Filter;)Ljava/util/List;"));
 //		assertNotNull(ctClass.getMethod("exists", "(Ljava/io/Serializable;)Z"));
 	}
 
