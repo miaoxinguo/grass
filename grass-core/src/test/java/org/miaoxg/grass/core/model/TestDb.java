@@ -2,6 +2,7 @@ package org.miaoxg.grass.core.model;
 
 import javax.sql.DataSource;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.miaoxg.grass.core.exception.GrassException;
@@ -27,15 +28,13 @@ public class TestDb {
     @Test
     public void testFindById(){
         DummyModel d = Model.findById(DummyModel.class, 1);
-        logger.debug("id = {}", d.getId());
-        logger.debug("column1 = {}", d.getColumn1());
-        logger.debug("column2 = {}", d.getColumn2());
-        logger.debug("column3 = {}", d.getColumn3());
+        Assert.assertNotNull(d);
+        logger.debug("id = {}, column1 = {}", d.getId(), d.getColumn1());
     }
     
     @Test
     public void testDeleteById(){
-        int i= Model.deleteById(DummyModel.class, 1);
-        logger.debug("删除 {} 行", i);
+        int i= Model.deleteById(DummyModel.class, 2);
+        Assert.assertTrue(i==1);
     }
 }

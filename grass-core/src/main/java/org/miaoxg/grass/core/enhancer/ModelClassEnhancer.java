@@ -91,7 +91,7 @@ public class ModelClassEnhancer {
 //        createMethod(context, ctClass, "all", "java.util.List");
 //        createMethod(context, ctClass, "count", "long");
 //        createMethod(context, ctClass, "count", "long", Filter.class.getName() + " filter");
-        createMethod(context, ctClass, "deleteById", Model.class.getName(), "java.io.Serializable id");
+        createMethod(context, ctClass, "deleteById", "int", "java.io.Serializable id");
 //        createMethod(context, ctClass, "deleteAll", "void");
 //        createMethod(context, ctClass, "deleteAll", "void", Filter.class.getName() + " filter");
 //        createMethod(context, ctClass, "exists", "boolean", "java.io.Serializable id");
@@ -110,7 +110,7 @@ public class ModelClassEnhancer {
                 ctClass.removeMethod(method);
             }
         } catch (NotFoundException e) {
-            logger.trace("Failed to get the method " + methodName, e);
+            logger.trace("The method {} doesn't exist, will create...", methodName);
             // Just ignore if the method doesn't exist already
         }
         
