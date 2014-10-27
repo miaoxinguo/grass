@@ -44,4 +44,10 @@ public class TestDb {
         int i= Model.deleteAll(DummyModel.class, "id = ? and column_1 = ?", 2, "sd");
         Assert.assertTrue(i>=0);
     }
+    
+    @Test
+    public void testDeleteAll(){
+        int i= Model.deleteAll(DummyModel.class);
+        Assert.assertTrue(i>=0);
+    }
 }

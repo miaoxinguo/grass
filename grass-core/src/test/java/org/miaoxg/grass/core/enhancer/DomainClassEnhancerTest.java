@@ -47,11 +47,11 @@ public class DomainClassEnhancerTest {
 		enhancer.enhance(this.getClass().getClassLoader(), DummyModel.class.getName());
 //		assertNotNull(ctClass.getMethod("saveList", "()Ljava/util/List;V")); 
 		
-		assertNotNull(ctClass.getMethod("deleteAll", "(Ljava/lang/Object;)I"));
-//		assertNotNull(ctClass.getMethod("deleteAll", "()V"));
+		assertNotNull(ctClass.getMethod("deleteAll", "(Ljava/lang/String;[Ljava/lang/Object;)I"));
+		assertNotNull(ctClass.getMethod("deleteAll", "()I"));
 		
 		assertNotNull(ctClass.getMethod("findById", "(Ljava/io/Serializable;)Lorg/miaoxg/grass/core/model/Model;"));
-		assertNotNull(ctClass.getMethod("findOne", "([Ljava/lang/Object;)Lorg/miaoxg/grass/core/model/Model;"));
+		assertNotNull(ctClass.getMethod("findOne", "(Ljava/lang/String;[Ljava/lang/Object;)Lorg/miaoxg/grass/core/model/Model;"));
 //		assertNotNull(ctClass.getMethod("all", "()Ljava/util/List;"));
 //		assertNotNull(ctClass.getMethod("count", "()J"));  // J表示long
 //		assertNotNull(ctClass.getMethod("where", "([Ljava/lang/Object;)Ljava/util/List;"));

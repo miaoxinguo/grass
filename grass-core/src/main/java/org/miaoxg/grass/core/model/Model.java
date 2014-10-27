@@ -53,14 +53,14 @@ public abstract class Model {
     /**
      * 查询一条
      */
-    public static <T extends Model> T findOne(String condition, Object...value) {
+    public static <T extends Model> T findOne(String condition, Object... value) {
         throw new GrassException(NIE);
     }
 
     /**
      * 查询一条
      */
-    protected static <T extends Model> T findOne(Class<T> clazz, String condition, Object...value) {
+    protected static <T extends Model> T findOne(Class<T> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
         sql.append("select ").append(SqlUtils.buildColumns(clazz))
         .append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
@@ -81,8 +81,28 @@ public abstract class Model {
      * @param value 参数
      * @return 影响的行数
      */
-    public int delete(String condition, Object...value) {
+    public int delete(String condition, Object... value) {
         return 1;
+    }
+    
+    /**
+     * 删除全部
+     * 
+     * @return 影响的行数
+     */
+    public static int deleteAll() {
+        throw new GrassException(NIE);
+    }
+    
+    /**
+     * 删除全部
+     */
+    protected static int deleteAll(Class<? extends Model> clazz) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("delete from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
+
+        logger.trace(sql.toString());
+        return getJdbcTemplate().update(sql.toString());
     }
     
     /**
@@ -92,14 +112,14 @@ public abstract class Model {
      * @param value 参数
      * @return 影响的行数
      */
-    public static int deleteAll(String condition, Object...value) {
+    public static int deleteAll(String condition, Object... value) {
         throw new GrassException(NIE);
     }
 
     /**
      * 删除
      */
-    protected static int deleteAll(Class<? extends Model> clazz, String condition, Object...value) {
+    protected static int deleteAll(Class<? extends Model> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
         sql.append("delete from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
         .append(" where ").append(condition);
