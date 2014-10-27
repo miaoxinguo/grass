@@ -20,8 +20,8 @@ public abstract class Model {
     /**
      * 根据主键查询
      * 
-     * @param id
-     *            主键
+     * @param clazz model类型
+     * @param id 主键
      * @return
      */
     public static <T extends Model> T findById(Integer id) {
@@ -30,26 +30,19 @@ public abstract class Model {
 
     /**
      * 根据主键查询, 默认使用model的第一个属性作为主键
-     * 
-     * @param clazz
-     *            model类型
-     * @param id
-     *            主键
-     * @return
      */
     protected static <T extends Model> T findById(Class<T> clazz, Serializable id) {
         String fieldIdName = SqlUtils.convertPropertyNameToColumnName(clazz.getDeclaredFields()[0].getName());
         StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz))
-        .append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
-        .append(" where ").append(fieldIdName).append("=?");
+        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(fieldIdName).append("=?");
 
         logger.trace(sql.toString());
         Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), id);
         return convertMapToBean(clazz, map);
     }
 
-    
     /**
      * 查询一条
      */
@@ -62,18 +55,18 @@ public abstract class Model {
      */
     protected static <T extends Model> T findOne(Class<T> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz))
-        .append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
-        .append(" where ").append(condition);
+        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(condition);
 
         logger.trace(sql.toString());
-        for(int i=0; i<value.length; i++){
-            logger.trace("paramter {} = {}", i+1, value[i]);
+        for (int i = 0; i < value.length; i++) {
+            logger.trace("paramter {} = {}", i + 1, value[i]);
         }
-        Map<String, Object> map =  getJdbcTemplate().queryForMap(sql.toString(), value);
+        Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), value);
         return convertMapToBean(clazz, map);
     }
-    
+
     /**
      * 删除
      * 
@@ -84,7 +77,7 @@ public abstract class Model {
     public int delete(String condition, Object... value) {
         return 1;
     }
-    
+
     /**
      * 删除全部
      * 
@@ -93,7 +86,7 @@ public abstract class Model {
     public static int deleteAll() {
         throw new GrassException(NIE);
     }
-    
+
     /**
      * 删除全部
      */
@@ -104,7 +97,7 @@ public abstract class Model {
         logger.trace(sql.toString());
         return getJdbcTemplate().update(sql.toString());
     }
-    
+
     /**
      * 删除
      * 
@@ -122,11 +115,11 @@ public abstract class Model {
     protected static int deleteAll(Class<? extends Model> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
         sql.append("delete from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
-        .append(" where ").append(condition);
+                .append(" where ").append(condition);
 
         logger.trace(sql.toString());
-        for(int i=0; i<value.length; i++){
-            logger.trace("paramter {} = {}", i+1, value[i]);
+        for (int i = 0; i < value.length; i++) {
+            logger.trace("paramter {} = {}", i + 1, value[i]);
         }
         return getJdbcTemplate().update(sql.toString(), value);
     }
