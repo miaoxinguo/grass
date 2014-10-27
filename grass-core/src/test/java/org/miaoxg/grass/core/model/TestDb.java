@@ -1,5 +1,7 @@
 package org.miaoxg.grass.core.model;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.junit.Assert;
@@ -23,6 +25,13 @@ public class TestDb {
             throw new GrassException("The Model.dataSource has to be set before used");
         }
         Model.dataSource = dataSource;
+    }
+    
+    @Test
+    public void testFindAll(){
+        List<DummyModel> d = Model.findAll(DummyModel.class, "id > ?", 1);
+        Assert.assertNotNull(d);
+        logger.debug("查询到{}行", d.size());
     }
     
     @Test

@@ -1,6 +1,8 @@
 package org.miaoxg.grass.core.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -16,67 +18,6 @@ public abstract class Model {
     private static final Logger logger = LoggerFactory.getLogger(Model.class);
     private static final String NIE = "Your models are not instrumented. Make sure you load the agent using GrassAgentLoader.instance().loadAgent()";
     public static DataSource dataSource = null;
-
-    /**
-     * 根据主键查询
-     * 
-     * @param clazz model类型
-     * @param id 主键
-     * @return
-     */
-    public static <T extends Model> T findById(Integer id) {
-        throw new GrassException(NIE);
-    }
-
-    /**
-     * 根据主键查询, 默认使用model的第一个属性作为主键
-     */
-    protected static <T extends Model> T findById(Class<T> clazz, Serializable id) {
-        String fieldIdName = SqlUtils.convertPropertyNameToColumnName(clazz.getDeclaredFields()[0].getName());
-        StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
-                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
-                .append(fieldIdName).append("=?");
-
-        logger.trace(sql.toString());
-        Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), id);
-        return convertMapToBean(clazz, map);
-    }
-
-    /**
-     * 查询一条
-     */
-    public static <T extends Model> T findOne(String condition, Object... value) {
-        throw new GrassException(NIE);
-    }
-
-    /**
-     * 查询一条
-     */
-    protected static <T extends Model> T findOne(Class<T> clazz, String condition, Object... value) {
-        StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
-                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
-                .append(condition);
-
-        logger.trace(sql.toString());
-        for (int i = 0; i < value.length; i++) {
-            logger.trace("paramter {} = {}", i + 1, value[i]);
-        }
-        Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), value);
-        return convertMapToBean(clazz, map);
-    }
-
-    /**
-     * 删除
-     * 
-     * @param c 条件
-     * @param value 参数
-     * @return 影响的行数
-     */
-    public int delete(String condition, Object... value) {
-        return 1;
-    }
 
     /**
      * 删除全部
@@ -132,6 +73,88 @@ public abstract class Model {
         return new JdbcTemplate(dataSource);
     }
 
+    /**
+     * 根据主键查询
+     * 
+     * @param clazz model类型
+     * @param id 主键
+     * @return
+     */
+    public static <T extends Model> T findById(Integer id) {
+        throw new GrassException(NIE);
+    }
+
+    /**
+     * 根据主键查询, 默认使用model的第一个属性作为主键
+     */
+    protected static <T extends Model> T findById(Class<T> clazz, Serializable id) {
+        String fieldIdName = SqlUtils.convertPropertyNameToColumnName(clazz.getDeclaredFields()[0].getName());
+        StringBuffer sql = new StringBuffer();
+        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(fieldIdName).append("=?");
+
+        logger.trace(sql.toString());
+        Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), id);
+        return convertMapToBean(clazz, map);
+    }
+
+    /**
+     * 查询一条
+     */
+    public static <T extends Model> T findOne(String condition, Object... value) {
+        throw new GrassException(NIE);
+    }
+
+    /**
+     * 查询一条
+     */
+    protected static <T extends Model> T findOne(Class<T> clazz, String condition, Object... value) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(condition);
+
+        logger.trace(sql.toString());
+        for (int i = 0; i < value.length; i++) {
+            logger.trace("paramter {} = {}", i + 1, value[i]);
+        }
+        Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), value);
+        return convertMapToBean(clazz, map);
+    }
+    
+    /**
+     * 根据主键查询
+     * 
+     * @param clazz model类型
+     * @param id 主键
+     * @return
+     */
+    public static <T extends Model> T findAll(String condition, Object... value) {
+        throw new GrassException(NIE);
+    }
+
+    /**
+     * 根据主键查询, 默认使用model的第一个属性作为主键
+     */
+    protected static <T extends Model> List<T> findAll(Class<T> clazz, String condition, Object... value) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select ").append(SqlUtils.buildColumns(clazz))
+            .append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(condition);
+
+        logger.trace(sql.toString());
+        for (int i = 0; i < value.length; i++) {
+            logger.trace("paramter {} = {}", i + 1, value[i]);
+        }
+        List<Map<String, Object>> mapList = getJdbcTemplate().queryForList(sql.toString(), value);
+        List<T> list = new ArrayList<T>();
+        for(Map<String, Object> map : mapList){
+            list.add(convertMapToBean(clazz, map));
+        }
+        return list;
+    }
+    
     /**
      * map转bean
      * 
