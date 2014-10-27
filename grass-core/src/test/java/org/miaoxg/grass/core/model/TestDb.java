@@ -27,7 +27,7 @@ public class TestDb {
     
     @Test
     public void testFindOne(){
-        DummyModel d = Model.findOne(DummyModel.class, "id = ? and column_1=?", 1, "sfj");
+        DummyModel d = Model.findOne(DummyModel.class, "id = ? and column_1 = ?", 1, "sfj");
         Assert.assertNotNull(d);
         logger.debug("id = {}, column1 = {}", d.getId(), d.getColumn1());
     }
@@ -40,8 +40,8 @@ public class TestDb {
     }
     
     @Test
-    public void testDeleteById(){
-        int i= Model.deleteById(DummyModel.class, 2);
-        Assert.assertTrue(i==1);
+    public void testDelete(){
+        int i= Model.delete(DummyModel.class, "id = ? and column_1 = ?", 2, "sd");
+        Assert.assertTrue(i>=0);
     }
 }

@@ -53,18 +53,18 @@ public abstract class Model {
     /**
      * 查询一条
      */
-    public static <T extends Model> T findOne(String c, Object...value) {
+    public static <T extends Model> T findOne(String condition, Object...value) {
         throw new GrassException(NIE);
     }
 
     /**
      * 查询一条
      */
-    protected static <T extends Model> T findOne(Class<T> clazz, String c, Object...value) {
+    protected static <T extends Model> T findOne(Class<T> clazz, String condition, Object...value) {
         StringBuffer sql = new StringBuffer();
         sql.append("select ").append(SqlUtils.buildColumns(clazz))
         .append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
-        .append(" where ").append(c);
+        .append(" where ").append(condition);
 
         logger.trace(sql.toString());
         for(int i=0; i<value.length; i++){
@@ -75,33 +75,29 @@ public abstract class Model {
     }
     
     /**
-     * 根据主键删除
+     * 删除
      * 
-     * @param id
-     *            主键
-     * @return
+     * @param c 条件
+     * @param value 参数
+     * @return 影响的行数
      */
-    public static int deleteById(Integer id) {
+    public static int delete(String condition, Object...value) {
         throw new GrassException(NIE);
     }
 
     /**
-     * 根据主键删除
-     * 
-     * @param clazz
-     *            model类型
-     * @param id
-     *            主键
-     * @return
+     * 删除
      */
-    protected static int deleteById(Class<? extends Model> clazz, Serializable id) {
-        String fieldIdName = SqlUtils.convertPropertyNameToColumnName(clazz.getDeclaredFields()[0].getName());
+    protected static int delete(Class<? extends Model> clazz, String condition, Object...value) {
         StringBuffer sql = new StringBuffer();
         sql.append("delete from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
-        .append(" where ").append(fieldIdName).append("=?");
+        .append(" where ").append(condition);
 
         logger.trace(sql.toString());
-        return getJdbcTemplate().update(sql.toString(), id);
+        for(int i=0; i<value.length; i++){
+            logger.trace("paramter {} = {}", i+1, value[i]);
+        }
+        return getJdbcTemplate().update(sql.toString(), value);
     }
 
     // TODO applicationContext.xml中注入JdbcTemplate， 表名前缀
