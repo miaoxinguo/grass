@@ -153,10 +153,10 @@ public class ModelClassEnhancer {
          * TODO 这里获取CtMethod时候， 如果名为methodName，参数为arguments的方法不存在，抛出异常。
          * 最好是根据方法列表判断一下要动态增加的方法是不是存在， 如果不存在直接返回null
          */
-        CtMethod[] ms = ctClass.getDeclaredMethods();
-        for(CtMethod m : ms){
-            System.out.println(m.getMethodInfo2().getDescriptor());
-        }
+//        CtMethod[] ms = ctClass.getDeclaredMethods();
+//        for(CtMethod m : ms){
+//            System.out.println(m.getMethodInfo2().getDescriptor());
+//        }
         
         return ctClass.getDeclaredMethod(methodName, paramTypes.toArray(new CtClass[0]));
     }
