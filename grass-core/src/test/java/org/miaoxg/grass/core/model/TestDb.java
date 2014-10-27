@@ -26,6 +26,13 @@ public class TestDb {
     }
     
     @Test
+    public void testFindOne(){
+        DummyModel d = Model.findOne(DummyModel.class, "id = ? and column_1=?", 1, "sfj");
+        Assert.assertNotNull(d);
+        logger.debug("id = {}, column1 = {}", d.getId(), d.getColumn1());
+    }
+    
+    @Test
     public void testFindById(){
         DummyModel d = Model.findById(DummyModel.class, 1);
         Assert.assertNotNull(d);

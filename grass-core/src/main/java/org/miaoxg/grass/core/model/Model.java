@@ -49,6 +49,31 @@ public abstract class Model {
         return convertMapToBean(clazz, map);
     }
 
+    
+    /**
+     * 查询一条
+     */
+    public static <T extends Model> T findOne(String c, Object...value) {
+        throw new GrassException(NIE);
+    }
+
+    /**
+     * 查询一条
+     */
+    protected static <T extends Model> T findOne(Class<T> clazz, String c, Object...value) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select ").append(SqlUtils.buildColumns(clazz))
+        .append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
+        .append(" where ").append(c);
+
+        logger.trace(sql.toString());
+        for(int i=0; i<value.length; i++){
+            logger.trace("paramter {} = {}", i+1, value[i]);
+        }
+        Map<String, Object> map =  getJdbcTemplate().queryForMap(sql.toString(), value);
+        return convertMapToBean(clazz, map);
+    }
+    
     /**
      * 根据主键删除
      * 
