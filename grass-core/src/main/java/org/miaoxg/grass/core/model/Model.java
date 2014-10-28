@@ -2,6 +2,7 @@ package org.miaoxg.grass.core.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,59 @@ public abstract class Model {
     private static final Logger logger = LoggerFactory.getLogger(Model.class);
     private static final String NIE = "Your models are not instrumented. Make sure you load the agent using GrassAgentLoader.instance().loadAgent()";
     public static DataSource dataSource = null;
+
+    /**
+     * 忽略, 插入或更新时不处理的字段
+     */
+    private List<String> excludedFields = new ArrayList<String>();
+
+    /**
+     * 忽略字段
+     * 
+     * @param fieldNames 字段名
+     * @return
+     */
+    public Model exclude(String... fieldNames) {
+        Collections.addAll(excludedFields, fieldNames);
+        return this;
+    }
+
+    public List<String> getExcludedFields() {
+        return this.excludedFields;
+    }
+
+    public int save() {
+        Map<String, Object> nameAndValues = null;
+        try {
+            nameAndValues = SqlUtils.buildColumnNameAndValues(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        /*
+         * 使用list存放值 而不是用map.values()是为了保证字段与参数的顺序一致
+         */
+        List<Object> columnValueList = new ArrayList<Object>();
+        StringBuffer columnNames = new StringBuffer();
+        StringBuffer placeholder = new StringBuffer();
+
+        for (String name : nameAndValues.keySet()) {
+            columnNames.append(",").append(name);
+            placeholder.append(",?");
+            columnValueList.add(nameAndValues.get(name));
+        }
+        StringBuffer sql = new StringBuffer();
+        sql.append("insert into ").append(SqlUtils.convertPropertyNameToColumnName(this.getClass().getSimpleName()))
+                .append("(").append(columnNames.substring(1)).append(")").append(" values(")
+                .append(placeholder.substring(1)).append(")");
+        logger.trace(sql.toString());
+        for (int i = 0; i < columnValueList.size(); i++) {
+            logger.trace("paramter {} = {}", i + 1, columnValueList.get(i));
+        }
+        // 每次执行后清楚忽略字段，避免对后面操作的影响
+        excludedFields.clear();
+        return getJdbcTemplate().update(sql.toString(), columnValueList.toArray());
+    }
 
     /**
      * 删除全部
@@ -180,7 +234,7 @@ public abstract class Model {
         }
         return list;
     }
-    
+
     /**
      * 根据条件查询记录数
      * 
@@ -197,9 +251,8 @@ public abstract class Model {
      */
     protected static long count(Class<? extends Model> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select count(*) from ")
-                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
-                .append(condition);
+        sql.append("select count(*) from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
+                .append(" where ").append(condition);
 
         logger.trace(sql.toString());
         for (int i = 0; i < value.length; i++) {
@@ -222,12 +275,11 @@ public abstract class Model {
      */
     protected static long count(Class<? extends Model> clazz) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select count(*) from ")
-                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
+        sql.append("select count(*) from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
         logger.trace(sql.toString());
         return getJdbcTemplate().queryForObject(sql.toString(), Long.class);
     }
-    
+
     /**
      * map转bean
      * 

@@ -1,22 +1,61 @@
 package org.miaoxg.grass.core.model;
 
-import org.miaoxg.grass.core.model.Model;
+import java.sql.Date;
+import java.sql.Timestamp;
 
 public class DummyModel extends Model {
 	
 	private Integer id;
 	
 	private String column1;
-	
 	private String column2;
-	
 	private String column3;
+	
+	private long longValue;
+	private float floatValue;
+	private Double doubleValue;
+	private Short shortValue;
+	
+	private Date dateValue;
+	private Timestamp timestampValue;
 	
 //	private Set<DummyModel> children = new HashSet<DummyModel>();
 //	
 //	private DummyModel parent;
 
-	public DummyModel() {
+	public Long getLongValue() {
+        return longValue;
+    }
+
+    public void setLongValue(Long longValue) {
+        this.longValue = longValue;
+    }
+
+    public Float getFloatValue() {
+        return floatValue;
+    }
+
+    public void setFloatValue(Float floatValue) {
+        this.floatValue = floatValue;
+    }
+
+    public Double getDoubleValue() {
+        return doubleValue;
+    }
+
+    public void setDoubleValue(Double doubleValue) {
+        this.doubleValue = doubleValue;
+    }
+
+    public Short getShortValue() {
+        return shortValue;
+    }
+
+    public void setShortValue(Short shortValue) {
+        this.shortValue = shortValue;
+    }
+
+    public DummyModel() {
 	}
 
 	public String getColumn1() {
@@ -49,7 +88,23 @@ public class DummyModel extends Model {
 		this.id = id;
 	}
 
-	@Override
+	public Date getDateValue() {
+        return dateValue;
+    }
+
+    public void setDateValue(Date dateValue) {
+        this.dateValue = dateValue;
+    }
+
+    public Timestamp getTimestampValue() {
+        return timestampValue;
+    }
+
+    public void setTimestampValue(Timestamp timestampValue) {
+        this.timestampValue = timestampValue;
+    }
+
+        @Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

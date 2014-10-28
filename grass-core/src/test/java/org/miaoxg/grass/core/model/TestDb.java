@@ -1,5 +1,7 @@
 package org.miaoxg.grass.core.model;
 
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -28,6 +30,21 @@ public class TestDb {
     }
     
     @Test
+    public void save(){
+        DummyModel d = new DummyModel();
+        d.setColumn1("test1");
+        d.setColumn2("test2");
+        d.setColumn3("test3");
+        d.setLongValue(123L);
+        d.setFloatValue(123.45f);
+        d.setDateValue(new Date(System.currentTimeMillis()));
+        d.setTimestampValue(new Timestamp(System.currentTimeMillis()));
+        int count = d.exclude("id").save();
+        Assert.assertTrue(count==1);
+        logger.debug("共保存{}条记录", count);
+    }
+    
+    @Test
     public void testCount(){
         long count = Model.count(DummyModel.class, "id > ?", 1);
         Assert.assertTrue(count>=0);
@@ -51,7 +68,7 @@ public class TestDb {
     
     @Test
     public void testFindOne(){
-        DummyModel d = Model.findOne(DummyModel.class, "id = ? and column_1 = ?", 1, "sfj");
+        DummyModel d = Model.findOne(DummyModel.class, "id = ? ", 29);
         Assert.assertNotNull(d);
         logger.debug("id = {}, column1 = {}", d.getId(), d.getColumn1());
     }
@@ -65,8 +82,8 @@ public class TestDb {
     
     @Test
     public void testDelete(){
-        int i= Model.deleteAll(DummyModel.class, "id = ? and column_1 = ?", 2, "sd");
-        Assert.assertTrue(i>=0);
+        int count = Model.deleteAll(DummyModel.class, "id < ? ", 15);
+        Assert.assertTrue(count >=0 );
     }
     
     @Test
