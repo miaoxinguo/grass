@@ -36,6 +36,7 @@ public class TestDb {
         d.setColumn2("test2");
         d.setColumn3("test3");
         d.setLongValue(123L);
+        d.setDoubleValue(2342.234d);
         d.setFloatValue(123.45f);
         d.setDateValue(new Date(System.currentTimeMillis()));
         d.setTimestampValue(new Timestamp(System.currentTimeMillis()));
@@ -57,13 +58,13 @@ public class TestDb {
     
     @Test
     public void testFindAll(){
-        List<DummyModel> d = Model.findAll(DummyModel.class, "id > ?", 1);
-        Assert.assertNotNull(d);
-        logger.debug("查询到{}行", d.size());
+//        List<DummyModel> d = Model.findAll(DummyModel.class, "id > ?", 1);
+//        Assert.assertNotNull(d);
+//        logger.debug("查询到{}行", d.size());
         
-        d = Model.findAll(DummyModel.class);
-        Assert.assertNotNull(d);
-        logger.debug("查询到{}行", d.size());
+        List<DummyModel>  d2 = Model.findAll(DummyModel.class);
+        Assert.assertNotNull(d2);
+        logger.debug("查询到{}行", d2.size());
     }
     
     @Test
@@ -82,6 +83,7 @@ public class TestDb {
     
     @Test
     public void testDelete(){
+        
         int count = Model.deleteAll(DummyModel.class, "id < ? ", 15);
         Assert.assertTrue(count >=0 );
     }

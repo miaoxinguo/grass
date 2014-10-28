@@ -14,7 +14,6 @@ public class DummyModel extends Model {
 	private long longValue;
 	private float floatValue;
 	private Double doubleValue;
-	private Short shortValue;
 	
 	private Date dateValue;
 	private Timestamp timestampValue;
@@ -45,14 +44,6 @@ public class DummyModel extends Model {
 
     public void setDoubleValue(Double doubleValue) {
         this.doubleValue = doubleValue;
-    }
-
-    public Short getShortValue() {
-        return shortValue;
-    }
-
-    public void setShortValue(Short shortValue) {
-        this.shortValue = shortValue;
     }
 
     public DummyModel() {
