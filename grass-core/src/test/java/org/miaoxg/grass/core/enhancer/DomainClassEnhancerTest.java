@@ -53,7 +53,9 @@ public class DomainClassEnhancerTest {
 		assertNotNull(ctClass.getMethod("findById", "(Ljava/io/Serializable;)Lorg/miaoxg/grass/core/model/Model;"));
 		assertNotNull(ctClass.getMethod("findOne", "(Ljava/lang/String;[Ljava/lang/Object;)Lorg/miaoxg/grass/core/model/Model;"));
 		assertNotNull(ctClass.getMethod("findAll", "(Ljava/lang/String;[Ljava/lang/Object;)Ljava/util/List;"));
-//		assertNotNull(ctClass.getMethod("count", "()J"));  // J表示long
+		assertNotNull(ctClass.getMethod("findAll", "()Ljava/util/List;"));
+		assertNotNull(ctClass.getMethod("count", "()J"));  // J表示long
+		assertNotNull(ctClass.getMethod("count", "(Ljava/lang/String;[Ljava/lang/Object;)J"));  // J表示long
 	}
 
 }

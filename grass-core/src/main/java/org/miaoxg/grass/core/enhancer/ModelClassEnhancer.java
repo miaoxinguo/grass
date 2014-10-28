@@ -93,9 +93,9 @@ public class ModelClassEnhancer {
         createMethod(context, ctClass, "findById", Model.class.getName(), "java.io.Serializable id");
         createMethod(context, ctClass, "findOne", Model.class.getName(), "String condition", "Object[] paramValues");
         createMethod(context, ctClass, "findAll", "java.util.List", "String condition", "Object[] paramValues");
-//        createMethod(context, ctClass, "findAll", "java.util.List");
-//        createMethod(context, ctClass, "count", "long", "String condition", "Object[] paramValues");
-//        createMethod(context, ctClass, "count", "long");
+        createMethod(context, ctClass, "findAll", "java.util.List");
+        createMethod(context, ctClass, "count", "long", "String condition", "Object[] paramValues");
+        createMethod(context, ctClass, "count", "long");
     }
     
     private void createMethod(Context context, CtClass ctClass, String methodName, String returnType, String... arguments) throws CannotCompileException {

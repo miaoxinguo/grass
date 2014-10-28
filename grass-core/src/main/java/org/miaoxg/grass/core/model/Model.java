@@ -122,12 +122,12 @@ public abstract class Model {
         Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), value);
         return convertMapToBean(clazz, map);
     }
-    
+
     /**
-     * 根据主键查询
+     * 根据条件查询
      * 
-     * @param clazz model类型
-     * @param id 主键
+     * @param condition 查询条件
+     * @param value 查询参数
      * @return
      */
     public static <T extends Model> T findAll(String condition, Object... value) {
@@ -135,12 +135,12 @@ public abstract class Model {
     }
 
     /**
-     * 根据主键查询, 默认使用model的第一个属性作为主键
+     * 根据条件查询
      */
     protected static <T extends Model> List<T> findAll(Class<T> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz))
-            .append(" from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
                 .append(condition);
 
         logger.trace(sql.toString());
@@ -149,10 +149,83 @@ public abstract class Model {
         }
         List<Map<String, Object>> mapList = getJdbcTemplate().queryForList(sql.toString(), value);
         List<T> list = new ArrayList<T>();
-        for(Map<String, Object> map : mapList){
+        for (Map<String, Object> map : mapList) {
             list.add(convertMapToBean(clazz, map));
         }
         return list;
+    }
+
+    /**
+     * 查询全部
+     * 
+     * @return
+     */
+    public static <T extends Model> T findAll() {
+        throw new GrassException(NIE);
+    }
+
+    /**
+     * 查询全部
+     */
+    protected static <T extends Model> List<T> findAll(Class<T> clazz) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
+
+        logger.trace(sql.toString());
+        List<Map<String, Object>> mapList = getJdbcTemplate().queryForList(sql.toString());
+        List<T> list = new ArrayList<T>();
+        for (Map<String, Object> map : mapList) {
+            list.add(convertMapToBean(clazz, map));
+        }
+        return list;
+    }
+    
+    /**
+     * 根据条件查询记录数
+     * 
+     * @param condition 查询条件
+     * @param value 查询参数
+     * @return
+     */
+    public static long count(String condition, Object... value) {
+        throw new GrassException(NIE);
+    }
+
+    /**
+     * 根据条件查询记录数
+     */
+    protected static long count(Class<? extends Model> clazz, String condition, Object... value) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select count(*) from ")
+                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(condition);
+
+        logger.trace(sql.toString());
+        for (int i = 0; i < value.length; i++) {
+            logger.trace("paramter {} = {}", i + 1, value[i]);
+        }
+        return getJdbcTemplate().queryForObject(sql.toString(), Long.class, value);
+    }
+
+    /**
+     * 查询总记录数
+     * 
+     * @return
+     */
+    public static long count() {
+        throw new GrassException(NIE);
+    }
+
+    /**
+     * 查询总记录数
+     */
+    protected static long count(Class<? extends Model> clazz) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select count(*) from ")
+                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
+        logger.trace(sql.toString());
+        return getJdbcTemplate().queryForObject(sql.toString(), Long.class);
     }
     
     /**

@@ -28,8 +28,23 @@ public class TestDb {
     }
     
     @Test
+    public void testCount(){
+        long count = Model.count(DummyModel.class, "id > ?", 1);
+        Assert.assertTrue(count>=0);
+        logger.debug("共{}条记录", count);
+        
+        count = Model.count(DummyModel.class);
+        Assert.assertTrue(count>=0);
+        logger.debug("共{}条记录", count);
+    }
+    
+    @Test
     public void testFindAll(){
         List<DummyModel> d = Model.findAll(DummyModel.class, "id > ?", 1);
+        Assert.assertNotNull(d);
+        logger.debug("查询到{}行", d.size());
+        
+        d = Model.findAll(DummyModel.class);
         Assert.assertNotNull(d);
         logger.debug("查询到{}行", d.size());
     }
