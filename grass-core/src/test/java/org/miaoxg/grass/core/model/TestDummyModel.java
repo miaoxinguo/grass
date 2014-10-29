@@ -81,15 +81,6 @@ public class TestDummyModel {
     }
     
     @Test
-    public void testfindArray(){
-        Byte[] ba = ArrayModel.findAll(ArrayModel.class).get(0).getByteObjectArray();
-        for(Byte b: ba){
-            System.out.print(b+" ");
-        }
-        System.out.println();
-    }
-    
-    @Test
     public void testDelete(){
         int count = Model.deleteAll(DummyModel.class, "id < ? ", 15);
         Assert.assertTrue(count >=0 );

@@ -5,7 +5,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,34 +41,49 @@ public abstract class Model {
         return this.excludedFields;
     }
 
+    /**
+     * 将当前对象的值存入数据库
+     */
+    @SuppressWarnings("unchecked")
     public int save() {
-        Map<String, Object> nameAndValues = null;
+        StringBuffer columnNames = new StringBuffer();  // 要插入值的列
+        StringBuffer placeholder = new StringBuffer();  // 占位符
+        List<Object> columnValueList = new ArrayList<Object>();  // 参数集合
+        
+        Method getExcludedFields = null;
+        List<String> excludedFieldList = null;
         try {
-            nameAndValues = buildColumnNameAndValues(this);
-        } catch (Exception e) {
-            logger.error("", e);
+            getExcludedFields = this.getClass().getMethod("getExcludedFields");
+            excludedFieldList = (List<String>)getExcludedFields.invoke(this);
+        }  catch (Exception e){
+            logger.error("save model error:", e);
+            // ingore
         }
-
-        /*
-         * 使用list存放值 而不是用map.values()是为了保证字段与参数的顺序一致
-         */
-        List<Object> columnValueList = new ArrayList<Object>();
-        StringBuffer columnNames = new StringBuffer();
-        StringBuffer placeholder = new StringBuffer();
-
-        for (String name : nameAndValues.keySet()) {
-            columnNames.append(",").append(name);
+        
+        for(Field field : this.getClass().getDeclaredFields()){
+            // 忽略的属性不处理
+            if(excludedFieldList.contains(field.getName())){
+                continue;
+            }
+            // TODO 排除非基本类型
+            
+            field.setAccessible(true);  // 重点，只有设置为true才能取private属性的值
+            columnNames.append(",").append(SqlUtils.toColumnName(field.getName()));
             placeholder.append(",?");
-            columnValueList.add(nameAndValues.get(name));
+            try {
+                columnValueList.add(field.get(this));
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                logger.error("save model error:", e);
+                // ingore
+            }
         }
+
         StringBuffer sql = new StringBuffer();
-        sql.append("insert into ").append(SqlUtils.toColumnName(this.getClass().getSimpleName()))
+        sql.append("insert into ").append(SqlUtils.toTableName(this.getClass().getSimpleName(), null))
                 .append("(").append(columnNames.substring(1)).append(")").append(" values(")
                 .append(placeholder.substring(1)).append(")");
         logger.trace(sql.toString());
-        for (int i = 0; i < columnValueList.size(); i++) {
-            logger.trace("paramter {} = {}", i + 1, columnValueList.get(i));
-        }
+        logger.trace("paramter: {}", columnValueList);
         // 每次执行后清楚忽略字段，避免对后面操作的影响
         excludedFields.clear();
         return getJdbcTemplate().update(sql.toString(), columnValueList.toArray());
@@ -115,9 +129,7 @@ public abstract class Model {
                 .append(" where ").append(condition);
 
         logger.trace(sql.toString());
-        for (int i = 0; i < value.length; i++) {
-            logger.trace("paramter {} = {}", i + 1, value[i]);
-        }
+        logger.trace("paramter: {}", value);
         return getJdbcTemplate().update(sql.toString(), value);
     }
 
@@ -164,9 +176,7 @@ public abstract class Model {
                 .append(condition);
 
         logger.trace(sql.toString());
-        for (int i = 0; i < value.length; i++) {
-            logger.trace("paramter {} = {}", i + 1, value[i]);
-        }
+        logger.trace("paramter: {}", value);
         Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), value);
         return convertMapToBean(clazz, map);
     }
@@ -192,9 +202,7 @@ public abstract class Model {
                 .append(condition);
 
         logger.trace(sql.toString());
-        for (int i = 0; i < value.length; i++) {
-            logger.trace("paramter {} = {}", i + 1, value[i]);
-        }
+        logger.trace("paramter: {}", value);
         List<Map<String, Object>> mapList = getJdbcTemplate().queryForList(sql.toString(), value);
         List<T> list = new ArrayList<T>();
         for (Map<String, Object> map : mapList) {
@@ -249,9 +257,7 @@ public abstract class Model {
                 .append(" where ").append(condition);
 
         logger.trace(sql.toString());
-        for (int i = 0; i < value.length; i++) {
-            logger.trace("paramter {} = {}", i + 1, value[i]);
-        }
+        logger.trace("paramter: ", value);
         return getJdbcTemplate().queryForObject(sql.toString(), Long.class, value);
     }
 
@@ -301,7 +307,7 @@ public abstract class Model {
     /**
      * 获取一个类的查询字段
      */
-    public static String buildColumns(Class<?> clazz){
+    private static String buildColumns(Class<?> clazz){
         StringBuffer sb = new StringBuffer();
         for(Field field : clazz.getDeclaredFields()){
             sb.append(",").append(SqlUtils.toColumnName(field.getName()));
@@ -310,33 +316,6 @@ public abstract class Model {
             throw new GrassException("The model '"+ clazz.getName() +"' must have one property at least");
         }
         return sb.substring(1);
-    }
-    
-    /**
-     * 获取一个类所有字段的名和值
-     */
-    public static Map<String, Object> buildColumnNameAndValues(Object sourceObj) throws Exception {
-        Map<String, Object> fieldNameAndValues = new HashMap<String, Object>();
-        Class<?> clazz = sourceObj.getClass();
-        
-        // 忽略的属性不处理
-        Method getExcludedFields= clazz.getMethod("getExcludedFields");
-        @SuppressWarnings("unchecked")
-        List<String> excludedFieldList = (List<String>)getExcludedFields.invoke(sourceObj);
-        
-        for(Field field : clazz.getDeclaredFields()){
-            if(excludedFieldList.contains(field.getName())){
-                continue;
-            }
-            
-            field.setAccessible(true);  // 重点，只有设置为true才能取private属性的值
-            fieldNameAndValues.put(SqlUtils.toColumnName(field.getName()), field.get(sourceObj));
-        }
-        
-        if(fieldNameAndValues.size() == 0){
-            throw new GrassException("The model '"+ clazz.getName() +"' must have one property at least");
-        }
-        return fieldNameAndValues;
     }
     
     // TODO applicationContext.xml中注入JdbcTemplate， 表名前缀

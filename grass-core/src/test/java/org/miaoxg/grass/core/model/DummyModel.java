@@ -18,19 +18,19 @@ public class DummyModel extends Model {
 	private Date dateValue;
 	private Timestamp timestampValue;
 	
-	public Long getLongValue() {
+	public long getLongValue() {
         return longValue;
     }
 
-    public void setLongValue(Long longValue) {
+    public void setLongValue(long longValue) {
         this.longValue = longValue;
     }
 
-    public Float getFloatValue() {
+    public float getFloatValue() {
         return floatValue;
     }
 
-    public void setFloatValue(Float floatValue) {
+    public void setFloatValue(float floatValue) {
         this.floatValue = floatValue;
     }
 

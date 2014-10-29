@@ -29,9 +29,9 @@ public class TestArrayModel {
     public void save(){
         ArrayModel m = new ArrayModel();
         byte[] smallb = new byte[]{1,2,3,4};
-        Byte[] bigb = new Byte[]{Byte.valueOf("1"),Byte.valueOf("2"),Byte.valueOf("3"),Byte.valueOf("4")};
+//        Byte[] bigb = new Byte[]{Byte.valueOf("1"),Byte.valueOf("2"),Byte.valueOf("3"),Byte.valueOf("4")};
         m.setByteArray(smallb);
-        m.setByteObjectArray(bigb);
+//        m.setByteObjectArray(bigb);
         int count = m.save();
         Assert.assertTrue(count==1);
         logger.debug("共保存{}条记录", count);
@@ -39,10 +39,7 @@ public class TestArrayModel {
     
     @Test
     public void testfindArray(){
-        Byte[] ba = ArrayModel.findAll(ArrayModel.class).get(0).getByteObjectArray();
-        for(Byte b: ba){
-            System.out.print(b+" ");
-        }
-        System.out.println();
+        byte[] ba = ArrayModel.findAll(ArrayModel.class).get(0).getByteArray();
+        logger.debug("{}", ba);
     }
 }
