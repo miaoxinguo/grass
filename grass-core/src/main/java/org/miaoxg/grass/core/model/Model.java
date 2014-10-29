@@ -46,7 +46,7 @@ public abstract class Model {
         try {
             nameAndValues = SqlUtils.buildColumnNameAndValues(this);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("", e);
         }
 
         /*
@@ -62,7 +62,7 @@ public abstract class Model {
             columnValueList.add(nameAndValues.get(name));
         }
         StringBuffer sql = new StringBuffer();
-        sql.append("insert into ").append(SqlUtils.convertPropertyNameToColumnName(this.getClass().getSimpleName()))
+        sql.append("insert into ").append(SqlUtils.toColumnName(this.getClass().getSimpleName()))
                 .append("(").append(columnNames.substring(1)).append(")").append(" values(")
                 .append(placeholder.substring(1)).append(")");
         logger.trace(sql.toString());
@@ -88,7 +88,7 @@ public abstract class Model {
      */
     protected static int deleteAll(Class<? extends Model> clazz) {
         StringBuffer sql = new StringBuffer();
-        sql.append("delete from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
+        sql.append("delete from ").append(SqlUtils.toColumnName(clazz.getSimpleName()));
 
         logger.trace(sql.toString());
         return getJdbcTemplate().update(sql.toString());
@@ -110,7 +110,7 @@ public abstract class Model {
      */
     protected static int deleteAll(Class<? extends Model> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
-        sql.append("delete from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
+        sql.append("delete from ").append(SqlUtils.toColumnName(clazz.getSimpleName()))
                 .append(" where ").append(condition);
 
         logger.trace(sql.toString());
@@ -118,14 +118,6 @@ public abstract class Model {
             logger.trace("paramter {} = {}", i + 1, value[i]);
         }
         return getJdbcTemplate().update(sql.toString(), value);
-    }
-
-    // TODO applicationContext.xml中注入JdbcTemplate， 表名前缀
-    private static JdbcTemplate getJdbcTemplate() {
-        if (dataSource == null) {
-            throw new GrassException("The Model.dataSource has to be set before used");
-        }
-        return new JdbcTemplate(dataSource);
     }
 
     /**
@@ -143,10 +135,10 @@ public abstract class Model {
      * 根据主键查询, 默认使用model的第一个属性作为主键
      */
     protected static <T extends Model> T findById(Class<T> clazz, Serializable id) {
-        String fieldIdName = SqlUtils.convertPropertyNameToColumnName(clazz.getDeclaredFields()[0].getName());
+        String fieldIdName = SqlUtils.toColumnName(clazz.getDeclaredFields()[0].getName());
         StringBuffer sql = new StringBuffer();
         sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
-                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(SqlUtils.toColumnName(clazz.getSimpleName())).append(" where ")
                 .append(fieldIdName).append("=?");
 
         logger.trace(sql.toString());
@@ -167,7 +159,7 @@ public abstract class Model {
     protected static <T extends Model> T findOne(Class<T> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
         sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
-                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(SqlUtils.toColumnName(clazz.getSimpleName())).append(" where ")
                 .append(condition);
 
         logger.trace(sql.toString());
@@ -195,7 +187,7 @@ public abstract class Model {
     protected static <T extends Model> List<T> findAll(Class<T> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
         sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
-                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName())).append(" where ")
+                .append(SqlUtils.toColumnName(clazz.getSimpleName())).append(" where ")
                 .append(condition);
 
         logger.trace(sql.toString());
@@ -225,7 +217,7 @@ public abstract class Model {
     protected static <T extends Model> List<T> findAll(Class<T> clazz) {
         StringBuffer sql = new StringBuffer();
         sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
-                .append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
+                .append(SqlUtils.toColumnName(clazz.getSimpleName()));
 
         logger.trace(sql.toString());
         List<Map<String, Object>> mapList = getJdbcTemplate().queryForList(sql.toString());
@@ -252,7 +244,7 @@ public abstract class Model {
      */
     protected static long count(Class<? extends Model> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select count(*) from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()))
+        sql.append("select count(*) from ").append(SqlUtils.toColumnName(clazz.getSimpleName()))
                 .append(" where ").append(condition);
 
         logger.trace(sql.toString());
@@ -276,7 +268,7 @@ public abstract class Model {
      */
     protected static long count(Class<? extends Model> clazz) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select count(*) from ").append(SqlUtils.convertPropertyNameToColumnName(clazz.getSimpleName()));
+        sql.append("select count(*) from ").append(SqlUtils.toColumnName(clazz.getSimpleName()));
         logger.trace(sql.toString());
         return getJdbcTemplate().queryForObject(sql.toString(), Long.class);
     }
@@ -294,8 +286,8 @@ public abstract class Model {
             
             // TODO 增加对对象、对象数组、集合的支持
             for (String columnName : map.keySet()) {
-                String setMethodName = SqlUtils.convertColumnNameToSetMethodName(columnName);
-                Field field = clazz.getDeclaredField(SqlUtils.convertColumnNameToPropertyName(columnName));
+                String setMethodName = SqlUtils.toSetterName(columnName);
+                Field field = clazz.getDeclaredField(SqlUtils.toPropertyName(columnName));
                 Method setMethod = clazz.getDeclaredMethod(setMethodName, field.getType());
                 setMethod.invoke(resultBean, map.get(columnName));
             }
@@ -303,5 +295,13 @@ public abstract class Model {
             logger.error("", e);
         }
         return resultBean;
+    }
+    
+    // TODO applicationContext.xml中注入JdbcTemplate， 表名前缀
+    private static JdbcTemplate getJdbcTemplate() {
+        if (dataSource == null) {
+            throw new GrassException("The Model.dataSource has to be set before used");
+        }
+        return new JdbcTemplate(dataSource);
     }
 }

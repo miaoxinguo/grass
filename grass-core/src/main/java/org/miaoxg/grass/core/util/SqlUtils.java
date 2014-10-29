@@ -22,7 +22,7 @@ public class SqlUtils {
     public static String buildColumns(Class<?> clazz){
         StringBuffer sb = new StringBuffer();
         for(Field field : clazz.getDeclaredFields()){
-            sb.append(",").append(convertPropertyNameToColumnName(field.getName()));
+            sb.append(",").append(toColumnName(field.getName()));
         }
         if(sb.length() == 0){
             throw new GrassException("The model '"+ clazz.getName() +"' must have one property at least");
@@ -48,7 +48,7 @@ public class SqlUtils {
             }
             
             field.setAccessible(true);  // 重点，只有设置为true才能取private属性的值
-            fieldNameAndValues.put(convertPropertyNameToColumnName(field.getName()), field.get(sourceObj));
+            fieldNameAndValues.put(toColumnName(field.getName()), field.get(sourceObj));
         }
         
         if(fieldNameAndValues.size() == 0){
@@ -60,7 +60,7 @@ public class SqlUtils {
     /**
      * 属性名转字段名。eg: userId -> user_id
      */
-    public static String convertPropertyNameToColumnName(String propertyName) {
+    public static String toColumnName(String propertyName) {
         StringBuilder result = new StringBuilder();
         if (propertyName != null && propertyName.length() > 0) {
             result.append(propertyName.substring(0, 1).toLowerCase());
@@ -81,7 +81,7 @@ public class SqlUtils {
     /**
      * 字段名转属性名。 eg: user_id -> userId 
      */
-    public static String convertColumnNameToPropertyName(String columneName) {
+    public static String toPropertyName(String columneName) {
         String[] partOfNames = columneName.split("_");
         StringBuffer sb = new StringBuffer(partOfNames[0]);
         for(int i=1; i<partOfNames.length; i++){
@@ -94,7 +94,7 @@ public class SqlUtils {
     /**
      * 字段名转set方法名。 eg: user_id -> getUserId 
      */
-    public static String convertColumnNameToSetMethodName(String columneName) {
+    public static String toSetterName(String columneName) {
         String[] partOfNames = columneName.split("_");
         StringBuffer sb = new StringBuffer("set");
         for(int i=0; i<partOfNames.length; i++){
