@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-public class TestDb {
-    private static final Logger logger = LoggerFactory.getLogger(TestDb.class);
+public class TestDummyModel {
+    private static final Logger logger = LoggerFactory.getLogger(TestDummyModel.class);
     private static ApplicationContext context;
 
     @BeforeClass
@@ -61,7 +61,6 @@ public class TestDb {
 //        List<DummyModel> d = Model.findAll(DummyModel.class, "id > ?", 1);
 //        Assert.assertNotNull(d);
 //        logger.debug("查询到{}行", d.size());
-        
         List<DummyModel>  d2 = Model.findAll(DummyModel.class);
         Assert.assertNotNull(d2);
         logger.debug("查询到{}行", d2.size());
@@ -82,8 +81,16 @@ public class TestDb {
     }
     
     @Test
+    public void testfindArray(){
+        Byte[] ba = ArrayModel.findAll(ArrayModel.class).get(0).getByteObjectArray();
+        for(Byte b: ba){
+            System.out.print(b+" ");
+        }
+        System.out.println();
+    }
+    
+    @Test
     public void testDelete(){
-        
         int count = Model.deleteAll(DummyModel.class, "id < ? ", 15);
         Assert.assertTrue(count >=0 );
     }

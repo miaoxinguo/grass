@@ -18,10 +18,6 @@ public class DummyModel extends Model {
 	private Date dateValue;
 	private Timestamp timestampValue;
 	
-//	private Set<DummyModel> children = new HashSet<DummyModel>();
-//	
-//	private DummyModel parent;
-
 	public Long getLongValue() {
         return longValue;
     }
