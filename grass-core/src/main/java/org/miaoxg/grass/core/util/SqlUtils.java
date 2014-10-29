@@ -9,6 +9,14 @@ public class SqlUtils {
     }   
     
     /**
+     * 类名转表名。eg: User -> user | perfix_user
+     */
+    public static String toTableName(String className, String perfix) {
+        boolean hasPerfix = perfix != null && perfix.trim().length() > 0;
+        return hasPerfix ? perfix +"_"+toColumnName(className) : toColumnName(className);
+    }
+    
+    /**
      * 属性名转字段名。eg: userId -> user_id
      */
     public static String toColumnName(String propertyName) {
