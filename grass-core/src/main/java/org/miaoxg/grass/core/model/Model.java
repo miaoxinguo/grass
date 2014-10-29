@@ -1,6 +1,8 @@
 package org.miaoxg.grass.core.model;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,7 +10,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.miaoxg.grass.core.exception.GrassException;
 import org.miaoxg.grass.core.util.SqlUtils;
 import org.slf4j.Logger;
@@ -283,18 +284,23 @@ public abstract class Model {
     /**
      * map转bean
      * 
+     * 不支持Short short Char char
      * TODO 集合 对象类型暂未处理
      */
     private static <T extends Model> T convertMapToBean(Class<T> clazz, Map<String, Object> map) {
         T resultBean = null;
         try {
             resultBean = clazz.newInstance();
-            for (String key : map.keySet()) {
-                PropertyUtils.setProperty(resultBean, SqlUtils.convertColumnNameToPropertyName(key), map.get(key));
+            
+            // TODO 增加对对象、对象数组、集合的支持
+            for (String columnName : map.keySet()) {
+                String setMethodName = SqlUtils.convertColumnNameToSetMethodName(columnName);
+                Field field = clazz.getDeclaredField(SqlUtils.convertColumnNameToPropertyName(columnName));
+                Method setMethod = clazz.getDeclaredMethod(setMethodName, field.getType());
+                setMethod.invoke(resultBean, map.get(columnName));
             }
         } catch (Exception e) {
             logger.error("", e);
-            throw new GrassException(e);
         }
         return resultBean;
     }
