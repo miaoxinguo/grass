@@ -90,4 +90,17 @@ public class SqlUtils {
         }
         return sb.toString();
     }
+    
+    /**
+     * 字段名转set方法名。 eg: user_id -> getUserId 
+     */
+    public static String convertColumnNameToSetMethodName(String columneName) {
+        String[] partOfNames = columneName.split("_");
+        StringBuffer sb = new StringBuffer("set");
+        for(int i=0; i<partOfNames.length; i++){
+            sb.append(partOfNames[i].substring(0, 1).toUpperCase());
+            sb.append(partOfNames[i].substring(1));
+        }
+        return sb.toString();
+    }
 }
