@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +45,7 @@ public abstract class Model {
     public int save() {
         Map<String, Object> nameAndValues = null;
         try {
-            nameAndValues = SqlUtils.buildColumnNameAndValues(this);
+            nameAndValues = buildColumnNameAndValues(this);
         } catch (Exception e) {
             logger.error("", e);
         }
@@ -137,7 +138,7 @@ public abstract class Model {
     protected static <T extends Model> T findById(Class<T> clazz, Serializable id) {
         String fieldIdName = SqlUtils.toColumnName(clazz.getDeclaredFields()[0].getName());
         StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+        sql.append("select ").append(buildColumns(clazz)).append(" from ")
                 .append(SqlUtils.toColumnName(clazz.getSimpleName())).append(" where ")
                 .append(fieldIdName).append("=?");
 
@@ -158,7 +159,7 @@ public abstract class Model {
      */
     protected static <T extends Model> T findOne(Class<T> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+        sql.append("select ").append(buildColumns(clazz)).append(" from ")
                 .append(SqlUtils.toColumnName(clazz.getSimpleName())).append(" where ")
                 .append(condition);
 
@@ -186,7 +187,7 @@ public abstract class Model {
      */
     protected static <T extends Model> List<T> findAll(Class<T> clazz, String condition, Object... value) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+        sql.append("select ").append(buildColumns(clazz)).append(" from ")
                 .append(SqlUtils.toColumnName(clazz.getSimpleName())).append(" where ")
                 .append(condition);
 
@@ -216,7 +217,7 @@ public abstract class Model {
      */
     protected static <T extends Model> List<T> findAll(Class<T> clazz) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select ").append(SqlUtils.buildColumns(clazz)).append(" from ")
+        sql.append("select ").append(buildColumns(clazz)).append(" from ")
                 .append(SqlUtils.toColumnName(clazz.getSimpleName()));
 
         logger.trace(sql.toString());
@@ -295,6 +296,47 @@ public abstract class Model {
             logger.error("", e);
         }
         return resultBean;
+    }
+    
+    /**
+     * 获取一个类的查询字段
+     */
+    public static String buildColumns(Class<?> clazz){
+        StringBuffer sb = new StringBuffer();
+        for(Field field : clazz.getDeclaredFields()){
+            sb.append(",").append(SqlUtils.toColumnName(field.getName()));
+        }
+        if(sb.length() == 0){
+            throw new GrassException("The model '"+ clazz.getName() +"' must have one property at least");
+        }
+        return sb.substring(1);
+    }
+    
+    /**
+     * 获取一个类所有字段的名和值
+     */
+    public static Map<String, Object> buildColumnNameAndValues(Object sourceObj) throws Exception {
+        Map<String, Object> fieldNameAndValues = new HashMap<String, Object>();
+        Class<?> clazz = sourceObj.getClass();
+        
+        // 忽略的属性不处理
+        Method getExcludedFields= clazz.getMethod("getExcludedFields");
+        @SuppressWarnings("unchecked")
+        List<String> excludedFieldList = (List<String>)getExcludedFields.invoke(sourceObj);
+        
+        for(Field field : clazz.getDeclaredFields()){
+            if(excludedFieldList.contains(field.getName())){
+                continue;
+            }
+            
+            field.setAccessible(true);  // 重点，只有设置为true才能取private属性的值
+            fieldNameAndValues.put(SqlUtils.toColumnName(field.getName()), field.get(sourceObj));
+        }
+        
+        if(fieldNameAndValues.size() == 0){
+            throw new GrassException("The model '"+ clazz.getName() +"' must have one property at least");
+        }
+        return fieldNameAndValues;
     }
     
     // TODO applicationContext.xml中注入JdbcTemplate， 表名前缀
