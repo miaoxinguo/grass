@@ -2,7 +2,6 @@ package org.miaoxg.grass.core.model;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,9 +19,6 @@ import org.springframework.jdbc.core.RowMapper;
 
 public abstract class Model {
     
-    // TODO 操作时 要忽略这个字段
-//    private static final long serialVersionUID = 1L;
-    
     private static final Logger logger = LoggerFactory.getLogger(Model.class);
     
     private static final String NIE = "Your models are not instrumented. Make sure you load the agent using GrassAgentLoader.instance().loadAgent()";
@@ -30,7 +26,20 @@ public abstract class Model {
     public static DataSource dataSource = null;
 
     /**
+     * 只有这些类型的字段能保存或修改
+     */
+    @SuppressWarnings({"serial" })
+    private static List<String> canSaveTypes = new ArrayList<String>(){{
+        add("string");     add("char");   add("character");
+        add("integer");    add("int");    add("short");    add("short");    add("byte");
+        add("long");       add("float");  add("double");
+        add("date");       add("time");   add("timestamp"); 
+    }};
+    
+    /**
      * 忽略, 插入或更新时不处理的字段
+     * 
+     * 每个子类维护自己的排除字段
      */
     private List<String> excludedFields = new ArrayList<String>();
 
@@ -52,29 +61,27 @@ public abstract class Model {
     /**
      * 将当前对象的值存入数据库
      */
-    @SuppressWarnings("unchecked")
     public int save() {
         StringBuffer columnNames = new StringBuffer();  // 要插入值的列
         StringBuffer placeholder = new StringBuffer();  // 占位符
         List<Object> columnValueList = new ArrayList<Object>();  // 参数集合
         
-        Method getExcludedFields = null;
-        List<String> excludedFieldList = null;
-        try {
-            getExcludedFields = this.getClass().getMethod("getExcludedFields");
-            excludedFieldList = (List<String>)getExcludedFields.invoke(this);
-        }  catch (Exception e){
-            logger.error("save model error:", e);
-            // ingore
-        }
+        List<String> excludedFieldList = getExcludedFields();
         
         for(Field field : this.getClass().getDeclaredFields()){
+            // 序列化字段不处理
+            if("serialVersionUID".equals(field.getName())){
+                continue;
+            }
             // 忽略的属性不处理
             if(excludedFieldList.contains(field.getName())){
                 continue;
             }
-            // TODO 排除非基本类型
-            
+            // TODO 排除非基本类型（包括封装类）、字符串等
+            String typeName = field.getType().getSimpleName().toLowerCase();
+            if(!canSaveTypes.contains(typeName)){
+                continue;
+            }
             field.setAccessible(true);  // 重点，只有设置为true才能取private属性的值
             columnNames.append(",").append(SqlUtils.toColumnName(field.getName()));
             placeholder.append(",?");
@@ -85,14 +92,16 @@ public abstract class Model {
                 // ingore
             }
         }
-
+        
+        //TODO 增加对表名前缀的处理
         StringBuffer sql = new StringBuffer();
         sql.append("insert into ").append(SqlUtils.toTableName(this.getClass().getSimpleName(), null))
                 .append("(").append(columnNames.substring(1)).append(")").append(" values(")
                 .append(placeholder.substring(1)).append(")");
         logger.trace(sql.toString());
         logger.trace("paramter: {}", columnValueList);
-        // 每次执行后清楚忽略字段，避免对后面操作的影响
+        
+        // 每次执行后清除忽略字段，避免对后面操作的影响
         excludedFields.clear();
         return getJdbcTemplate().update(sql.toString(), columnValueList.toArray());
     }
