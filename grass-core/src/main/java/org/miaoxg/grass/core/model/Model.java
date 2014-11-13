@@ -3,10 +3,11 @@ package org.miaoxg.grass.core.model;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -15,10 +16,17 @@ import org.miaoxg.grass.core.util.SqlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 public abstract class Model {
+    
+    // TODO 操作时 要忽略这个字段
+//    private static final long serialVersionUID = 1L;
+    
     private static final Logger logger = LoggerFactory.getLogger(Model.class);
+    
     private static final String NIE = "Your models are not instrumented. Make sure you load the agent using GrassAgentLoader.instance().loadAgent()";
+    
     public static DataSource dataSource = null;
 
     /**
@@ -155,8 +163,8 @@ public abstract class Model {
                 .append(fieldIdName).append("=?");
 
         logger.trace(sql.toString());
-        Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), id);
-        return convertMapToBean(clazz, map);
+        logger.trace("id = {}", id);
+        return getJdbcTemplate().queryForObject(sql.toString(), new GenericRowMapper<T>(clazz), id);
     }
 
     /**
@@ -177,8 +185,7 @@ public abstract class Model {
 
         logger.trace(sql.toString());
         logger.trace("paramter: {}", value);
-        Map<String, Object> map = getJdbcTemplate().queryForMap(sql.toString(), value);
-        return convertMapToBean(clazz, map);
+        return getJdbcTemplate().queryForObject(sql.toString(), new GenericRowMapper<T>(clazz), value);
     }
 
     /**
@@ -203,12 +210,7 @@ public abstract class Model {
 
         logger.trace(sql.toString());
         logger.trace("paramter: {}", value);
-        List<Map<String, Object>> mapList = getJdbcTemplate().queryForList(sql.toString(), value);
-        List<T> list = new ArrayList<T>();
-        for (Map<String, Object> map : mapList) {
-            list.add(convertMapToBean(clazz, map));
-        }
-        return list;
+        return getJdbcTemplate().query(sql.toString(), new GenericRowMapper<T>(clazz));
     }
 
     /**
@@ -227,14 +229,8 @@ public abstract class Model {
         StringBuffer sql = new StringBuffer();
         sql.append("select ").append(buildColumns(clazz)).append(" from ")
                 .append(SqlUtils.toColumnName(clazz.getSimpleName()));
-
         logger.trace(sql.toString());
-        List<Map<String, Object>> mapList = getJdbcTemplate().queryForList(sql.toString());
-        List<T> list = new ArrayList<T>();
-        for (Map<String, Object> map : mapList) {
-            list.add(convertMapToBean(clazz, map));
-        }
-        return list;
+        return getJdbcTemplate().query(sql.toString(), new GenericRowMapper<T>(clazz));
     }
 
     /**
@@ -279,30 +275,6 @@ public abstract class Model {
         logger.trace(sql.toString());
         return getJdbcTemplate().queryForObject(sql.toString(), Long.class);
     }
-
-    /**
-     * map转bean
-     * 
-     * 不支持Short short Char char
-     * TODO 集合 对象类型暂未处理
-     */
-    private static <T extends Model> T convertMapToBean(Class<T> clazz, Map<String, Object> map) {
-        T resultBean = null;
-        try {
-            resultBean = clazz.newInstance();
-            
-            // TODO 增加对对象、对象数组、集合的支持
-            for (String columnName : map.keySet()) {
-                String setMethodName = SqlUtils.toSetterName(columnName);
-                Field field = clazz.getDeclaredField(SqlUtils.toPropertyName(columnName));
-                Method setMethod = clazz.getDeclaredMethod(setMethodName, field.getType());
-                setMethod.invoke(resultBean, map.get(columnName));
-            }
-        } catch (Exception e) {
-            logger.error("", e);
-        }
-        return resultBean;
-    }
     
     /**
      * 获取一个类的查询字段
@@ -324,5 +296,43 @@ public abstract class Model {
             throw new GrassException("The Model.dataSource has to be set before used");
         }
         return new JdbcTemplate(dataSource);
+    }
+    
+    /**
+     * 通过反射构造对象
+     */
+    private static class GenericRowMapper<T extends Model> implements RowMapper<T>{
+        Class<T> clazz;
+        public GenericRowMapper(Class<T> clazz){
+            logger.trace("new RowMapper");
+            this.clazz = clazz;
+        }
+        
+        @Override
+        public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+            T t = null;
+            Field[] fields = clazz.getDeclaredFields();
+            try {
+                t = clazz.newInstance();
+                
+                for (Field field : fields) {  
+                    //修改相应filed的权限  
+                    boolean accessFlag = field.isAccessible();  
+                    field.setAccessible(true);  
+                    
+                    String columnName = SqlUtils.toColumnName(field.getName());
+                    if(rs.getObject(columnName) != null){
+                        field.set(t, rs.getObject(columnName));
+                    }
+                    
+                    //恢复相应field的权限  
+                    field.setAccessible(accessFlag);  
+                }
+            } catch (Exception e) {
+                logger.error("", e);
+                throw new GrassException(e);
+            } 
+            return t;
+        }
     }
 }
