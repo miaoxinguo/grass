@@ -29,7 +29,7 @@ public abstract class Model {
      * 只有这些类型的字段能保存或修改
      */
     @SuppressWarnings({"serial" })
-    private static List<String> canSaveTypes = new ArrayList<String>(){{
+    private static List<String> supportTypes = new ArrayList<String>(){{
         add("string");     add("char");   add("character");
         add("integer");    add("int");    add("short");    add("short");    add("byte");
         add("long");       add("float");  add("double");
@@ -66,22 +66,16 @@ public abstract class Model {
         StringBuffer placeholder = new StringBuffer();  // 占位符
         List<Object> columnValueList = new ArrayList<Object>();  // 参数集合
         
-        List<String> excludedFieldList = getExcludedFields();
-        
         for(Field field : this.getClass().getDeclaredFields()){
-            // 序列化字段不处理
-            if("serialVersionUID".equals(field.getName())){
-                continue;
-            }
             // 忽略的属性不处理
-            if(excludedFieldList.contains(field.getName())){
+            if(getExcludedFields().contains(field.getName())){
                 continue;
             }
-            // TODO 排除非基本类型（包括封装类）、字符串等
-            String typeName = field.getType().getSimpleName().toLowerCase();
-            if(!canSaveTypes.contains(typeName)){
+            // 不打算映射的类型不处理
+            if(isMapping(field) == false){
                 continue;
             }
+            
             field.setAccessible(true);  // 重点，只有设置为true才能取private属性的值
             columnNames.append(",").append(SqlUtils.toColumnName(field.getName()));
             placeholder.append(",?");
@@ -150,6 +144,46 @@ public abstract class Model {
         return getJdbcTemplate().update(sql.toString(), value);
     }
 
+    /**
+     * 更新记录
+     */
+    public int update() {
+        StringBuffer columnNames = new StringBuffer();  // 要插入值的列
+        List<Object> columnValueList = new ArrayList<Object>();  // 参数集合
+        
+        for(Field field : this.getClass().getDeclaredFields()){
+            // 忽略的属性不处理
+            if(getExcludedFields().contains(field.getName())){
+                continue;
+            }
+            // 不打算映射的类型不处理
+            if(isMapping(field) == false){
+                continue;
+            }
+            
+            field.setAccessible(true);  // 重点，只有设置为true才能取private属性的值
+            columnNames.append(",").append(SqlUtils.toColumnName(field.getName())).append("=?");
+            
+            try {
+                columnValueList.add(field.get(this));
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                logger.error("save model error:", e);
+                // ingore
+            }
+        }
+        
+        //TODO 增加对表名前缀的处理
+        StringBuffer sql = new StringBuffer();
+        sql.append("update ").append(SqlUtils.toTableName(this.getClass().getSimpleName(), null))
+                .append(" set ").append(columnNames.substring(1));
+        logger.trace(sql.toString());
+        logger.trace("paramter: {}", columnValueList);
+        
+        // 每次执行后清除忽略字段，避免对后面操作的影响
+        excludedFields.clear();
+        return getJdbcTemplate().update(sql.toString(), columnValueList.toArray());
+    }
+    
     /**
      * 根据主键查询
      * 
@@ -291,6 +325,10 @@ public abstract class Model {
     private static String buildColumns(Class<?> clazz){
         StringBuffer sb = new StringBuffer();
         for(Field field : clazz.getDeclaredFields()){
+            // 不打算映射的类型不处理
+            if(isMapping(field) == false){
+                continue;
+            }
             sb.append(",").append(SqlUtils.toColumnName(field.getName()));
         }
         if(sb.length() == 0){
@@ -305,6 +343,22 @@ public abstract class Model {
             throw new GrassException("The Model.dataSource has to be set before used");
         }
         return new JdbcTemplate(dataSource);
+    }
+    
+    /**
+     * 判断字段是否参与映射
+     */
+    private static boolean isMapping(Field field){
+        // 序列化字段不处理
+        if("serialVersionUID".equals(field.getName())){
+            return false;
+        }
+        // 排除非基本类型（包括封装类）、字符串等
+        String typeName = field.getType().getSimpleName().toLowerCase();
+        if(!supportTypes.contains(typeName)){
+            return false;
+        }
+        return true;
     }
     
     /**
@@ -325,6 +379,10 @@ public abstract class Model {
                 t = clazz.newInstance();
                 
                 for (Field field : fields) {  
+                    // 不打算映射的类型不处理
+                    if(isMapping(field) == false){
+                        continue;
+                    }
                     //修改相应filed的权限  
                     boolean accessFlag = field.isAccessible();  
                     field.setAccessible(true);  

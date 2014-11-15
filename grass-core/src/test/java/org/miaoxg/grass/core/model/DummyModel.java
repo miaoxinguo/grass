@@ -18,6 +18,8 @@ public class DummyModel extends Model {
 	private Date dateValue;
 	private Timestamp timestampValue;
 	
+	private DummyModel sub;
+	
 	public long getLongValue() {
         return longValue;
     }
@@ -89,6 +91,14 @@ public class DummyModel extends Model {
 
     public void setTimestampValue(Timestamp timestampValue) {
         this.timestampValue = timestampValue;
+    }
+
+        public DummyModel getSub() {
+        return sub;
+    }
+
+    public void setSub(DummyModel sub) {
+        this.sub = sub;
     }
 
         @Override

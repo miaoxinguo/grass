@@ -45,6 +45,15 @@ public class TestDummyModel {
         logger.debug("共保存{}条记录", count);
     }
     
+//    @Test
+    public void testUpdate(){
+        DummyModel d = DummyModel.findOne(DummyModel.class, "id=?", 1);
+        d.setColumn1("update");
+        int count = d.exclude("id").update();
+        Assert.assertTrue(count==1);
+        logger.debug("共保存{}条记录", count);
+    }
+    
     @Test
     public void testCount(){
         long count = Model.count(DummyModel.class, "id > ?", 1);
@@ -58,9 +67,10 @@ public class TestDummyModel {
     
     @Test
     public void testFindAll(){
-//        List<DummyModel> d = Model.findAll(DummyModel.class, "id > ?", 1);
-//        Assert.assertNotNull(d);
-//        logger.debug("查询到{}行", d.size());
+        List<DummyModel> d = Model.findAll(DummyModel.class, "id > ?", 1);
+        Assert.assertNotNull(d);
+        logger.debug("查询到{}行", d.size());
+        
         List<DummyModel>  d2 = Model.findAll(DummyModel.class);
         Assert.assertNotNull(d2);
         logger.debug("查询到{}行", d2.size());
@@ -68,7 +78,7 @@ public class TestDummyModel {
     
     @Test
     public void testFindOne(){
-        DummyModel d = Model.findOne(DummyModel.class, "id = ? ", 29);
+        DummyModel d = Model.findOne(DummyModel.class, "id = ? ", 1);
         Assert.assertNotNull(d);
         logger.debug("id = {}, column1 = {}", d.getId(), d.getColumn1());
     }
