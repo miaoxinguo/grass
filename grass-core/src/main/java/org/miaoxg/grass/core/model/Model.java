@@ -26,14 +26,17 @@ public abstract class Model {
     public static DataSource dataSource = null;
 
     /**
-     * 只有这些类型的字段能保存或修改
+     * 只有这些类型的字段能保存、修改、查询
+     * 
+     * 使用小写保存，判断时需要将字段类型转为小写形式
      */
     @SuppressWarnings({"serial" })
     private static List<String> supportTypes = new ArrayList<String>(){{
         add("string");     add("char");   add("character");
-        add("integer");    add("int");    add("short");    add("short");    add("byte");
+        add("integer");    add("int");    add("short");       add("byte");
         add("long");       add("float");  add("double");
         add("date");       add("time");   add("timestamp"); 
+        add("boolean");
     }};
     
     /**
