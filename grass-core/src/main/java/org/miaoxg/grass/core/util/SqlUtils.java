@@ -51,7 +51,7 @@ public class SqlUtils {
     }
     
     /**
-     * 字段名转set方法名。 eg: user_id -> getUserId 
+     * 字段名转set方法名。 eg: user_id -> setUserId 
      */
     public static String toSetterName(String columneName) {
         String[] partOfNames = columneName.split("_");
