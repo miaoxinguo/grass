@@ -17,7 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * 方法实现提供者
  * 
- * TODO 批量插入 批量更新
+ * TODO 批量插入、 批量更新、 多表join查询 、分页
  * 
  * @author miaoxinguo2002@163.com
  */
@@ -31,39 +31,23 @@ public abstract class BaseModel {
     public static DataSource dataSource = null;
     
     /**
-     * 只有这些类型的字段能保存、修改、查询
-     * 
-     * 使用小写保存，判断时需要将字段类型转为小写形式
-     */
-    @SuppressWarnings({"serial" })
-    private static List<String> supportTypes = new ArrayList<String>(){{
-        add("string");     add("char");   add("character");
-        add("integer");    add("int");    add("short");       add("byte");
-        add("long");       add("float");  add("double");
-        add("date");       add("time");   add("timestamp"); 
-        add("boolean");
-    }};
-    
-    /**
-     * 忽略列表, 插入、更新、查询时不处理的字段
-     * 
-     * 每个子类维护自己的排除字段
+     * 忽略列表, 插入、更新时不处理的字段。每个子类维护自己的忽略列表
      */
     private List<String> excludedFields = new ArrayList<String>();
     
     /**
      * 设置忽略字段
      */
-    public void setExclude(String... fieldNames) {
+    protected void setExclude(String... fieldNames) {
         Collections.addAll(excludedFields, fieldNames);
     }
     
     /**
-     * 获取忽略字段集合
+     * 字段是否被忽略
      */
-    private List<String> getExcludedFields() {
-        return this.excludedFields;
-    } 
+    private boolean isExcluded(String name){
+        return excludedFields.contains(name);
+    }
     
     /**
      * 清空忽略字段集合
@@ -82,7 +66,7 @@ public abstract class BaseModel {
         
         for(Field field : this.getClass().getDeclaredFields()){
             // 忽略的属性不处理
-            if(getExcludedFields().contains(field.getName())){
+            if(isExcluded((field.getName()))){
                 continue;
             }
             // 不打算映射的类型不处理
@@ -106,7 +90,7 @@ public abstract class BaseModel {
                 .append(placeholder.substring(1)).append(")");
         logger.trace(sql.toString());
         logger.trace("paramter: {}", columnValueList);
-        
+
         // 每次执行后清除忽略字段，避免对后面操作的影响
         clearExcludedFields();
         return getJdbcTemplate().update(sql.toString(), columnValueList.toArray());
@@ -145,7 +129,7 @@ public abstract class BaseModel {
         
         for(Field field : this.getClass().getDeclaredFields()){
             // 忽略的属性不处理
-            if(getExcludedFields().contains(field.getName())){
+            if(isExcluded((field.getName()))){
                 continue;
             }
             // 不打算映射的类型不处理
@@ -279,7 +263,7 @@ public abstract class BaseModel {
         }
         // 排除非基本类型（包括封装类）、字符串等
         String typeName = field.getType().getSimpleName().toLowerCase();
-        if(!supportTypes.contains(typeName)){
+        if(!SupportedType.contains(typeName)){
             return false;
         }
         return true;
