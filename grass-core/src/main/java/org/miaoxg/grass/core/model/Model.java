@@ -1,5 +1,7 @@
 package org.miaoxg.grass.core.model;
 
+import java.util.List;
+
 import org.miaoxg.grass.core.exception.GrassException;
 
 /**
@@ -80,7 +82,7 @@ public abstract class Model extends BaseModel{
      * @param value 查询参数
      * @return
      */
-    public static <T extends Model> T findAll(String condition, Object... value) {
+    public static <T extends Model> List<T> findAll(String condition, Object... value) {
         throw new GrassException(NIE);
     }
 
@@ -89,10 +91,19 @@ public abstract class Model extends BaseModel{
      * 
      * @return
      */
-    public static <T extends Model> T findAll() {
+    public static <T extends Model> List<T> findAll() {
         throw new GrassException(NIE);
     }
-
+    
+    /**
+     * 使用完整的sql语句进行查询
+     * 
+     * @return
+     */
+    public static <T extends Model> List<T> findAll(String sql) {
+        throw new GrassException(NIE);
+    }
+    
     /**
      * 根据条件查询记录数
      * 
@@ -112,4 +123,6 @@ public abstract class Model extends BaseModel{
     public static long count() {
         throw new GrassException(NIE);
     }
+    
+    
 }
