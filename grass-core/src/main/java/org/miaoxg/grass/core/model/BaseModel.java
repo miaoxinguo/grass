@@ -96,8 +96,7 @@ public abstract class BaseModel {
             try {
                 columnValueList.add(field.get(this));
             } catch (IllegalArgumentException | IllegalAccessException e) {
-                throw new GrassException("save model error，", e);
-                // ingore
+                throw new GrassException("illegal argument or Access:", e);
             }
         }
         //TODO 增加对表名前缀的处理
@@ -160,8 +159,7 @@ public abstract class BaseModel {
             try {
                 columnValueList.add(field.get(this));
             } catch (IllegalArgumentException | IllegalAccessException e) {
-                logger.error("save model error:", e);
-                // ingore
+                throw new GrassException("illegal argument or Access:", e);
             }
         }
         //TODO 增加对表名前缀的处理
