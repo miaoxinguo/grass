@@ -100,7 +100,7 @@ public abstract class Model extends BaseModel{
      * 
      * @return
      */
-    public static <T extends Model> List<T> findAll(String sql) {
+    public static <T extends Model> List<T> findBySql(String sql) {
         throw new GrassException(NIE);
     }
     
